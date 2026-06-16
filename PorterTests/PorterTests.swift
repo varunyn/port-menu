@@ -449,11 +449,11 @@ struct ContainerRuntimeTests {
 
     @Test func mapsComposeProjectAndService() {
         let output = """
-        llm-sec-arena-web-1\t0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp\tllm-sec-arena\tweb
-        llm-sec-arena-db-1\t0.0.0.0:55432->5432/tcp\tllm-sec-arena\tdb
+        myapp-web-1\t0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp\tmyapp\tweb
+        myapp-db-1\t0.0.0.0:55432->5432/tcp\tmyapp\tdb
         """
         let map = LivePortScanner.parseContainerOutput(output)
-        #expect(map[3000]?.project == "llm-sec-arena")
+        #expect(map[3000]?.project == "myapp")
         #expect(map[3000]?.service == "web")
         #expect(map[55432]?.service == "db")
     }
