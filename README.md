@@ -31,8 +31,8 @@ Requires macOS 14 (Sonoma) or later.
 ## Build from source
 
 ```bash
-git clone https://github.com/wieandteduard/port-menu.git
-cd Porter
+git clone https://github.com/varunyn/port-menu.git
+cd port-menu
 open Porter.xcodeproj
 ```
 

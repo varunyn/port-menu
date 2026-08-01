@@ -12,12 +12,13 @@ struct ActivePort: Identifiable, Equatable, Hashable, Sendable {
     /// True when this port is published by a container runtime (Docker/OrbStack).
     /// Used to distinguish container services from local git projects in the UI.
     let isContainer: Bool
+    let imageName: String
 
     var url: URL {
         URL(string: "http://localhost:\(port)")!
     }
 
-    init(port: UInt16, pid: Int32, projectName: String, branch: String, startTime: Date?, isContainer: Bool = false) {
+    init(port: UInt16, pid: Int32, projectName: String, branch: String, startTime: Date?, isContainer: Bool = false, imageName: String = "") {
         self.id = "\(port)-\(pid)"
         self.port = port
         self.pid = pid
@@ -25,6 +26,7 @@ struct ActivePort: Identifiable, Equatable, Hashable, Sendable {
         self.branch = branch
         self.startTime = startTime
         self.isContainer = isContainer
+        self.imageName = imageName
     }
 }
 

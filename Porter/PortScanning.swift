@@ -33,6 +33,7 @@ struct LivePortScanner: PortScanning {
         "python3",
         "reflex",
         "ruby",
+        "ssh",
         "uvicorn"
     ]
 
@@ -72,12 +73,9 @@ struct LivePortScanner: PortScanning {
         }
 
         let pids = Set(parsed.map(\.pid))
-        let hasContainerPorts = parsed.contains {
-            Self.containerRuntimeName(for: $0.processName) != nil
-        }
         async let cwdResult = resolveCWDs(pids: pids)
         async let startTimeResult = resolveStartTimes(pids: pids)
-        async let containerResult = resolveContainers(enabled: hasContainerPorts)
+        async let containerResult = resolveContainers()
         let (cwds, startTimes, containers) = await (cwdResult, startTimeResult, containerResult)
 
         return await resolveProjects(parsed: parsed, cwds: cwds,
@@ -87,8 +85,10 @@ struct LivePortScanner: PortScanning {
     // MARK: - Container Resolution
 
     struct ContainerInfo: Sendable {
+        let name: String      // actual container name (e.g. "rag-frontend", "reader-pointe-react-frontend-1")
         let project: String   // compose project, or container name if standalone
         let service: String   // compose service name (empty for standalone containers)
+        let image: String     // Docker image name (e.g. "redis:7", "postgres:16")
     }
 
     // Common install locations for the `docker`-compatible CLI. The same binary
@@ -109,9 +109,9 @@ struct LivePortScanner: PortScanning {
     /// Maps published host ports to their container's compose project/service by
     /// querying the container CLI. Best-effort: returns empty if no runtime ports
     /// were seen, the CLI is missing, or the daemon is unreachable.
-    private func resolveContainers(enabled: Bool) async -> [UInt16: ContainerInfo] {
-        guard enabled, let docker = Self.dockerExecutable() else { return [:] }
-        let format = #"{{.Names}}\t{{.Ports}}\t{{.Label "com.docker.compose.project"}}\t{{.Label "com.docker.compose.service"}}"#
+    private func resolveContainers() async -> [UInt16: ContainerInfo] {
+        guard let docker = Self.dockerExecutable() else { return [:] }
+        let format = #"{{.Names}}\t{{.Ports}}\t{{.Label "com.docker.compose.project"}}\t{{.Label "com.docker.compose.service"}}\t{{.Image}}"#
         guard let output = try? await runShell(
             docker, args: ["ps", "--no-trunc", "--format", format],
             timeout: 5
@@ -132,9 +132,12 @@ struct LivePortScanner: PortScanning {
             let portsField = cols[1]
             let projectLabel = cols.count > 2 ? cols[2].trimmingCharacters(in: .whitespaces) : ""
             let serviceLabel = cols.count > 3 ? cols[3].trimmingCharacters(in: .whitespaces) : ""
+            let image = cols.count > 4 ? cols[4].trimmingCharacters(in: .whitespaces) : name
             let info = ContainerInfo(
+                name: name,
                 project: projectLabel.isEmpty ? name : projectLabel,
-                service: serviceLabel
+                service: serviceLabel,
+                image: image
             )
             for port in parseContainerHostPorts(portsField) {
                 result[port] = info
@@ -296,10 +299,10 @@ struct LivePortScanner: PortScanning {
             let cwd = cwds[info.pid]
             let gitRoot = cwd.flatMap { gitRoots[$0] }
             let rootPath = gitRoot?.path()
-            let isContainerRuntime = Self.containerRuntimeName(for: info.processName) != nil
-            let container = isContainerRuntime ? containers[info.port] : nil
+            let container = containers[info.port]
+            let isContainerPort = container != nil
 
-            if gitRoot == nil, !isContainerRuntime,
+            if gitRoot == nil, !isContainerPort,
                !Self.shouldKeepFallbackProcess(processName: info.processName, cwd: cwd) {
                 if Log.isVerbose {
                     Log.scanner.debug("Skipping non-project process '\(info.processName)' on port \(info.port)")
@@ -310,9 +313,7 @@ struct LivePortScanner: PortScanning {
             let projectName: String
             let branch: String
             if let container {
-                // Container runtime port matched to a running container: prefer the
-                // compose project/service over the generic runtime label.
-                projectName = container.project
+                projectName = container.name
                 branch = container.service
             } else {
                 projectName = Self.displayName(
@@ -333,7 +334,8 @@ struct LivePortScanner: PortScanning {
                 projectName: projectName,
                 branch: branch,
                 startTime: startTimes[info.pid],
-                isContainer: isContainerRuntime
+                isContainer: isContainerPort,
+                imageName: container?.image ?? ""
             )
         }
     }

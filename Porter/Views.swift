@@ -368,6 +368,13 @@ struct PortRow: View {
                                 .truncationMode(.middle)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
+                        if !entry.imageName.isEmpty {
+                            Text(entry.imageName)
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                        }
                     } else if !entry.branch.isEmpty {
                         HStack(spacing: 3) {
                             Image(systemName: "arrow.triangle.branch")

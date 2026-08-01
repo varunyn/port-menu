@@ -7,3 +7,11 @@ DerivedData/
 xcuserdata/
 *.moved-aside
 *.orig
+.env
+.env.*
+!.env.example
+*.p12
+*.mobileprovision
+*.provisionprofile
+*.pem
+*.key

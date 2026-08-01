@@ -181,7 +181,8 @@ VERSION=$(defaults read "${EXPORT_APP_PATH}/Contents/Info" CFBundleShortVersionS
 BUILD=$(defaults read "${EXPORT_APP_PATH}/Contents/Info" CFBundleVersion)
 DMG_SIZE=$(stat -f%z "${DMG_PATH}")
 DMG_FILENAME="PortMenu-${VERSION}.dmg"
-DMG_RELEASE_URL="https://github.com/wieandteduard/port-menu/releases/download/v${VERSION}/${DMG_FILENAME}"
+GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-varunyn/port-menu}"
+DMG_RELEASE_URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/${DMG_FILENAME}"
 SPARKLE_PRIV_KEY=$(security find-generic-password -s "https://sparkle-project.org" -a "ed25519" -w 2>/dev/null)
 ED_SIGNATURE=$("${SPARKLE_BIN}/sign_update" --ed-key-file <(echo "${SPARKLE_PRIV_KEY}") "${DMG_PATH}" 2>/dev/null | sed 's/.*edSignature="\([^"]*\)".*/\1/')
 PUB_DATE=$(date -u "+%a, %d %b %Y %H:%M:%S +0000")
@@ -191,7 +192,7 @@ cat > packaging/appcast.xml <<APPCAST
 <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
     <channel>
         <title>Port Menu</title>
-        <link>https://raw.githubusercontent.com/wieandteduard/port-menu/main/packaging/appcast.xml</link>
+        <link>https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/main/packaging/appcast.xml</link>
         <description>Port Menu release feed</description>
         <language>en</language>
         <item>

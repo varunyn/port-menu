@@ -449,20 +449,26 @@ struct ContainerRuntimeTests {
 
     @Test func mapsComposeProjectAndService() {
         let output = """
-        myapp-web-1\t0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp\tmyapp\tweb
-        myapp-db-1\t0.0.0.0:55432->5432/tcp\tmyapp\tdb
+        myapp-web-1\t0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp\tmyapp\tweb\tnode:18
+        myapp-db-1\t0.0.0.0:55432->5432/tcp\tmyapp\tdb\tpostgres:16
         """
         let map = LivePortScanner.parseContainerOutput(output)
+        #expect(map[3000]?.name == "myapp-web-1")
         #expect(map[3000]?.project == "myapp")
         #expect(map[3000]?.service == "web")
+        #expect(map[3000]?.image == "node:18")
+        #expect(map[55432]?.name == "myapp-db-1")
         #expect(map[55432]?.service == "db")
+        #expect(map[55432]?.image == "postgres:16")
     }
 
     @Test func standaloneContainerFallsBackToName() {
-        let output = "my-redis\t0.0.0.0:6379->6379/tcp\t\t"
+        let output = "my-redis\t0.0.0.0:6379->6379/tcp\t\t\tredis:7"
         let map = LivePortScanner.parseContainerOutput(output)
+        #expect(map[6379]?.name == "my-redis")
         #expect(map[6379]?.project == "my-redis")
         #expect(map[6379]?.service == "")
+        #expect(map[6379]?.image == "redis:7")
     }
 }
 
