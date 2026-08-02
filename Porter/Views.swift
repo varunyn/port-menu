@@ -394,14 +394,12 @@ struct PortRow: View {
                 if entry.isContainer && hasResourceUsage {
                     HStack(spacing: 10) {
                         if !entry.cpuUsage.isEmpty {
-                            Text("CPU \(entry.cpuUsage)")
+                            ResourcePill(label: "CPU", value: entry.cpuUsage, tint: .orange)
                         }
                         if !entry.memoryUsage.isEmpty {
-                            Text("MEM \(entry.memoryUsage)")
+                            ResourcePill(label: "MEM", value: entry.memoryUsage, tint: .blue)
                         }
                     }
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
                     .padding(.leading, 20)
                 }
             }
@@ -453,6 +451,26 @@ struct PortRow: View {
 
     private var hasResourceUsage: Bool {
         !entry.cpuUsage.isEmpty || !entry.memoryUsage.isEmpty
+    }
+}
+
+private struct ResourcePill: View {
+    let label: String
+    let value: String
+    let tint: Color
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(label)
+                .fontWeight(.semibold)
+            Text(value)
+        }
+        .font(.caption2)
+        .foregroundStyle(tint)
+        .padding(.horizontal, 7)
+        .padding(.vertical, 3)
+        .background(tint.opacity(0.12), in: Capsule())
+        .accessibilityElement(children: .combine)
     }
 }
 
