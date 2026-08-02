@@ -359,56 +359,51 @@ struct PortRow: View {
                     .offset(x: isHovered ? 0 : 6)
                 }
 
-                HStack(spacing: 6) {
-                    if entry.isContainer {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    if entry.isContainer || !entry.branch.isEmpty {
                         HStack(spacing: 3) {
-                            Image(systemName: "shippingbox")
-                            Text(entry.branch.isEmpty ? "container" : entry.branch)
+                            Image(systemName: entry.isContainer ? "shippingbox" : "arrow.triangle.branch")
+                            Text(metadataLabel)
                                 .lineLimit(1)
                                 .truncationMode(.middle)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
-                        if !entry.imageName.isEmpty {
-                            Text(entry.imageName)
-                                .font(.caption)
-                                .foregroundStyle(.tertiary)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                        }
-                        if !entry.cpuUsage.isEmpty || !entry.memoryUsage.isEmpty {
-                            HStack(spacing: 4) {
-                                if !entry.cpuUsage.isEmpty {
-                                    Text("CPU \(entry.cpuUsage)")
-                                }
-                                if !entry.memoryUsage.isEmpty {
-                                    Text("MEM \(entry.memoryUsage)")
-                                }
+
+                            if entry.isContainer && !entry.imageName.isEmpty {
+                                Text(entry.imageName)
+                                    .foregroundStyle(.tertiary)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
                             }
-                            .foregroundStyle(.tertiary)
                         }
-                    } else if !entry.branch.isEmpty {
-                        HStack(spacing: 3) {
-                            Image(systemName: "arrow.triangle.branch")
-                            Text(entry.branch)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
+                        .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                     }
 
                     Text(":\(String(entry.port))")
                         .fontDesign(.monospaced)
                         .foregroundStyle(.tertiary)
-
-                    Spacer()
+                        .fixedSize()
 
                     if let start = entry.startTime {
                         Text(formatUptime(from: start))
                             .foregroundStyle(.tertiary)
+                            .fixedSize()
                     }
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
+
+                if entry.isContainer && hasResourceUsage {
+                    HStack(spacing: 10) {
+                        if !entry.cpuUsage.isEmpty {
+                            Text("CPU \(entry.cpuUsage)")
+                        }
+                        if !entry.memoryUsage.isEmpty {
+                            Text("MEM \(entry.memoryUsage)")
+                        }
+                    }
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .padding(.leading, 20)
+                }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
@@ -447,6 +442,17 @@ struct PortRow: View {
             try? await Task.sleep(for: .seconds(0.3))
             store.removeEntry(port: entry.port)
         }
+    }
+
+    private var metadataLabel: String {
+        if entry.isContainer {
+            return entry.branch.isEmpty ? "container" : entry.branch
+        }
+        return entry.branch
+    }
+
+    private var hasResourceUsage: Bool {
+        !entry.cpuUsage.isEmpty || !entry.memoryUsage.isEmpty
     }
 }
 
