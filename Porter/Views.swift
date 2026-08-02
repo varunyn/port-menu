@@ -57,7 +57,11 @@ struct PortMainContentView: View {
             } else if store.entries.isEmpty && store.isScanning {
                 PortScanningStateView()
             } else {
-                PortEntryListView()
+                ScrollView(.vertical) {
+                    PortEntryListView()
+                }
+                .frame(maxHeight: 460)
+                .scrollIndicators(.automatic)
             }
         }
     }
