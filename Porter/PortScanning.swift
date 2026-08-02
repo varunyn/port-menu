@@ -89,6 +89,12 @@ struct LivePortScanner: PortScanning {
         let project: String   // compose project, or container name if standalone
         let service: String   // compose service name (empty for standalone containers)
         let image: String     // Docker image name (e.g. "redis:7", "postgres:16")
+        let stats: ContainerStats?
+    }
+
+    struct ContainerStats: Sendable {
+        let cpuPercent: String
+        let memoryUsage: String
     }
 
     // Common install locations for the `docker`-compatible CLI. The same binary
@@ -111,19 +117,42 @@ struct LivePortScanner: PortScanning {
     /// were seen, the CLI is missing, or the daemon is unreachable.
     private func resolveContainers() async -> [UInt16: ContainerInfo] {
         guard let docker = Self.dockerExecutable() else { return [:] }
-        let format = #"{{.Names}}\t{{.Ports}}\t{{.Label "com.docker.compose.project"}}\t{{.Label "com.docker.compose.service"}}\t{{.Image}}"#
-        guard let output = try? await runShell(
-            docker, args: ["ps", "--no-trunc", "--format", format],
+        let containerFormat = #"{{.Names}}\t{{.Ports}}\t{{.Label "com.docker.compose.project"}}\t{{.Label "com.docker.compose.service"}}\t{{.Image}}"#
+        let statsFormat = #"{{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}"#
+        async let containerOutput = try? runShell(
+            docker, args: ["ps", "--no-trunc", "--format", containerFormat],
             timeout: 5
-        ) else {
+        )
+        async let statsOutput = try? runShell(
+            docker, args: ["stats", "--no-stream", "--format", statsFormat],
+            timeout: 5
+        )
+        let (output, resourceOutput) = await (containerOutput, statsOutput)
+        guard let output else {
             if Log.isVerbose { log.debug("docker ps lookup failed or timed out") }
             return [:]
         }
-        return Self.parseContainerOutput(output)
+        let stats = resourceOutput.map(Self.parseContainerStatsOutput) ?? [:]
+        return Self.parseContainerOutput(output, stats: stats)
+    }
+
+    /// Parses the tab-separated `docker stats` output into container-name → usage.
+    static func parseContainerStatsOutput(_ output: String) -> [String: ContainerStats] {
+        var result: [String: ContainerStats] = [:]
+        for line in output.split(separator: "\n", omittingEmptySubsequences: true) {
+            let cols = line.components(separatedBy: "\t")
+            guard cols.count >= 3 else { continue }
+            let name = cols[0].trimmingCharacters(in: .whitespaces)
+            let cpuPercent = cols[1].trimmingCharacters(in: .whitespaces)
+            let memoryUsage = cols[2].trimmingCharacters(in: .whitespaces)
+            guard !name.isEmpty, !cpuPercent.isEmpty, !memoryUsage.isEmpty else { continue }
+            result[name] = ContainerStats(cpuPercent: cpuPercent, memoryUsage: memoryUsage)
+        }
+        return result
     }
 
     /// Parses the tab-separated `docker ps` output into a host-port → container map.
-    static func parseContainerOutput(_ output: String) -> [UInt16: ContainerInfo] {
+    static func parseContainerOutput(_ output: String, stats: [String: ContainerStats] = [:]) -> [UInt16: ContainerInfo] {
         var result: [UInt16: ContainerInfo] = [:]
         for line in output.split(separator: "\n", omittingEmptySubsequences: true) {
             let cols = line.components(separatedBy: "\t")
@@ -137,7 +166,8 @@ struct LivePortScanner: PortScanning {
                 name: name,
                 project: projectLabel.isEmpty ? name : projectLabel,
                 service: serviceLabel,
-                image: image
+                image: image,
+                stats: stats[name]
             )
             for port in parseContainerHostPorts(portsField) {
                 result[port] = info
@@ -335,7 +365,9 @@ struct LivePortScanner: PortScanning {
                 branch: branch,
                 startTime: startTimes[info.pid],
                 isContainer: isContainerPort,
-                imageName: container?.image ?? ""
+                imageName: container?.image ?? "",
+                cpuUsage: container?.stats?.cpuPercent ?? "",
+                memoryUsage: container?.stats?.memoryUsage ?? ""
             )
         }
     }

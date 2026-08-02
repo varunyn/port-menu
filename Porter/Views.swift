@@ -375,6 +375,17 @@ struct PortRow: View {
                                 .lineLimit(1)
                                 .truncationMode(.tail)
                         }
+                        if !entry.cpuUsage.isEmpty || !entry.memoryUsage.isEmpty {
+                            HStack(spacing: 4) {
+                                if !entry.cpuUsage.isEmpty {
+                                    Text("CPU \(entry.cpuUsage)")
+                                }
+                                if !entry.memoryUsage.isEmpty {
+                                    Text("MEM \(entry.memoryUsage)")
+                                }
+                            }
+                            .foregroundStyle(.tertiary)
+                        }
                     } else if !entry.branch.isEmpty {
                         HStack(spacing: 3) {
                             Image(systemName: "arrow.triangle.branch")

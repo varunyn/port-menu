@@ -452,6 +452,19 @@ struct ContainerRuntimeTests {
         #expect(ports == [55432])
     }
 
+    @Test func parsesContainerResourceUsage() {
+        let output = """
+        reader-pointe-react-frontend-1\t0.18%\t142.4MiB / 7.667GiB
+        project-hub-app-1\t1.42%\t512.0MiB / 7.667GiB
+        """
+
+        let stats = LivePortScanner.parseContainerStatsOutput(output)
+
+        #expect(stats["reader-pointe-react-frontend-1"]?.cpuPercent == "0.18%")
+        #expect(stats["reader-pointe-react-frontend-1"]?.memoryUsage == "142.4MiB / 7.667GiB")
+        #expect(stats["project-hub-app-1"]?.cpuPercent == "1.42%")
+    }
+
     @Test func ignoresUnpublishedPorts() {
         #expect(LivePortScanner.parseContainerHostPorts("8000/tcp").isEmpty)
     }
@@ -478,6 +491,18 @@ struct ContainerRuntimeTests {
         #expect(map[6379]?.project == "my-redis")
         #expect(map[6379]?.service == "")
         #expect(map[6379]?.image == "redis:7")
+    }
+
+    @Test func attachesContainerResourceUsageToPublishedPort() {
+        let output = "reader-pointe-react-frontend-1\t0.0.0.0:3002->3000/tcp\treader-pointe-react\tfrontend\tnode:18"
+        let stats = LivePortScanner.parseContainerStatsOutput(
+            "reader-pointe-react-frontend-1\t0.18%\t142.4MiB / 7.667GiB"
+        )
+
+        let map = LivePortScanner.parseContainerOutput(output, stats: stats)
+
+        #expect(map[3002]?.stats?.cpuPercent == "0.18%")
+        #expect(map[3002]?.stats?.memoryUsage == "142.4MiB / 7.667GiB")
     }
 }
 
