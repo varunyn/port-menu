@@ -60,10 +60,11 @@ struct PortMainContentView: View {
                 ScrollView(.vertical) {
                     PortEntryListView()
                 }
-                .frame(maxHeight: 460)
+                .frame(maxHeight: 360)
                 .scrollIndicators(.automatic)
             }
         }
+        .frame(minHeight: 300, maxHeight: 420, alignment: .top)
     }
 }
 
