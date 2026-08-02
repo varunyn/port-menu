@@ -34,6 +34,68 @@ struct ActivePort: Identifiable, Equatable, Hashable, Sendable {
     }
 }
 
+enum PortSortOption: String, CaseIterable, Sendable {
+    case port
+    case cpu
+    case memory
+    case started
+
+    var title: String {
+        switch self {
+        case .port: return "Port"
+        case .cpu: return "CPU usage"
+        case .memory: return "Memory usage"
+        case .started: return "Started"
+        }
+    }
+
+    func sorted(_ entries: [ActivePort]) -> [ActivePort] {
+        entries.sorted { lhs, rhs in
+            let result: Bool
+            switch self {
+            case .port:
+                result = lhs.port < rhs.port
+            case .cpu:
+                result = cpuValue(lhs.cpuUsage) > cpuValue(rhs.cpuUsage)
+            case .memory:
+                result = memoryValue(lhs.memoryUsage) > memoryValue(rhs.memoryUsage)
+            case .started:
+                result = (lhs.startTime ?? .distantPast) > (rhs.startTime ?? .distantPast)
+            }
+
+            if result { return true }
+            if self == .port {
+                return lhs.port == rhs.port && lhs.id < rhs.id
+            }
+            return lhs.port < rhs.port
+        }
+    }
+
+    private func cpuValue(_ value: String) -> Double {
+        Double(value.replacingOccurrences(of: "%", with: "")) ?? 0
+    }
+
+    private func memoryValue(_ value: String) -> Double {
+        guard let token = value.split(separator: " ").first else { return 0 }
+        let amount = Double(token.prefix { $0.isNumber || $0 == "." }) ?? 0
+        let unit = String(token.drop { $0.isNumber || $0 == "." }).lowercased()
+        let multiplier: Double
+        switch unit {
+        case "b": multiplier = 1
+        case "kb": multiplier = 1_000
+        case "kib": multiplier = 1_024
+        case "mb": multiplier = 1_000_000
+        case "mib": multiplier = 1_048_576
+        case "gb": multiplier = 1_000_000_000
+        case "gib": multiplier = 1_073_741_824
+        case "tb": multiplier = 1_000_000_000_000
+        case "tib": multiplier = 1_099_511_627_776
+        default: multiplier = 1
+        }
+        return amount * multiplier
+    }
+}
+
 // MARK: - Scan Result
 
 enum ScanResult: Sendable {

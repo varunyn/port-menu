@@ -141,6 +141,16 @@ struct PortHeaderView: View {
                             .toggleStyle(.switch)
                             .controlSize(.mini)
 
+                        Picker("Sort by", selection: Binding(
+                            get: { store.sortOption },
+                            set: { store.sortOption = $0 }
+                        )) {
+                            ForEach(PortSortOption.allCases, id: \.self) { option in
+                                Text(option.title).tag(option)
+                            }
+                        }
+                        .pickerStyle(.menu)
+
                         Divider()
 
                         CheckForUpdatesView(updater: updater)

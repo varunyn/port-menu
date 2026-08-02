@@ -176,6 +176,42 @@ struct ActivePortTests {
     }
 }
 
+// MARK: - Sort Option Tests
+
+struct PortSortOptionTests {
+
+    private let entries = [
+        ActivePort(port: 3000, pid: 1, projectName: "low", branch: "", startTime: nil, cpuUsage: "0.20%", memoryUsage: "100MiB / 1GiB"),
+        ActivePort(port: 8080, pid: 2, projectName: "high", branch: "", startTime: nil, cpuUsage: "2.00%", memoryUsage: "900MiB / 1GiB")
+    ]
+
+    @Test func exposesUserFacingTitles() {
+        #expect(PortSortOption.port.title == "Port")
+        #expect(PortSortOption.cpu.title == "CPU usage")
+        #expect(PortSortOption.memory.title == "Memory usage")
+        #expect(PortSortOption.started.title == "Started")
+    }
+
+    @Test func sortsCpuFromHighestToLowest() {
+        let sorted = PortSortOption.cpu.sorted(entries)
+        #expect(sorted.map(\.projectName) == ["high", "low"])
+    }
+
+    @Test func sortsMemoryFromHighestToLowest() {
+        let sorted = PortSortOption.memory.sorted(entries)
+        #expect(sorted.map(\.projectName) == ["high", "low"])
+    }
+
+    @Test func sortsStartedFromNewestToOldest() {
+        let old = ActivePort(port: 3000, pid: 1, projectName: "old", branch: "", startTime: Date(timeIntervalSince1970: 100))
+        let recent = ActivePort(port: 8080, pid: 2, projectName: "recent", branch: "", startTime: Date(timeIntervalSince1970: 200))
+
+        let sorted = PortSortOption.started.sorted([old, recent])
+
+        #expect(sorted.map(\.projectName) == ["recent", "old"])
+    }
+}
+
 // MARK: - FakeScanner Tests
 
 struct FakeScannerTests {

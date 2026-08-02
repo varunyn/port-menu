@@ -16,12 +16,25 @@ final class PortStore {
     @ObservationIgnored
     @AppStorage("refreshInterval") private var storedInterval: Double = RefreshInterval.defaultInterval.rawValue
 
+    @ObservationIgnored
+    @AppStorage("sortOption") private var storedSortOption: String = PortSortOption.port.rawValue
+
     var refreshInterval: RefreshInterval {
         get { RefreshInterval(rawValue: storedInterval) ?? .defaultInterval }
         set {
             storedInterval = newValue.rawValue
             restartTimer()
             Log.store.info("Refresh interval changed to \(newValue.rawValue)s")
+        }
+    }
+
+    var sortOption: PortSortOption {
+        get { PortSortOption(rawValue: storedSortOption) ?? .port }
+        set {
+            storedSortOption = newValue.rawValue
+            withAnimation(.easeInOut(duration: 0.2)) {
+                entries = newValue.sorted(entries)
+            }
         }
     }
 
@@ -96,19 +109,20 @@ final class PortStore {
 
     /// Smoothly updates entries, preserving existing items during transition.
     private func applyUpdate(_ newEntries: [ActivePort]) {
+        let sortedEntries = sortOption.sorted(newEntries)
         let oldIDs = Set(entries.map(\.port))
-        let newIDs = Set(newEntries.map(\.port))
+        let newIDs = Set(sortedEntries.map(\.port))
 
-        if oldIDs == newIDs && entries.count == newEntries.count {
+        if oldIDs == newIDs && entries.count == sortedEntries.count {
             var needsUpdate = false
-            for (old, new) in zip(entries, newEntries) {
+            for (old, new) in zip(entries, sortedEntries) {
                 if old != new { needsUpdate = true; break }
             }
             if !needsUpdate { return }
         }
 
         withAnimation(.easeInOut(duration: 0.25)) {
-            entries = newEntries
+            entries = sortedEntries
         }
     }
 
