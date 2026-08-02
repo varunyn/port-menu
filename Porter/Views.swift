@@ -382,15 +382,10 @@ struct PortRow: View {
                         .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                     }
 
-                    Text(":\(String(entry.port))")
-                        .fontDesign(.monospaced)
-                        .foregroundStyle(.tertiary)
-                        .fixedSize()
+                    MetadataPill(label: "PORT", value: ":\(String(entry.port))", tint: .secondary)
 
                     if let start = entry.startTime {
-                        Text(formatUptime(from: start))
-                            .foregroundStyle(.tertiary)
-                            .fixedSize()
+                        MetadataPill(label: "UP", value: formatUptime(from: start), tint: .green)
                     }
                 }
                 .font(.caption)
@@ -399,10 +394,10 @@ struct PortRow: View {
                 if entry.isContainer && hasResourceUsage {
                     HStack(spacing: 10) {
                         if !entry.cpuUsage.isEmpty {
-                            ResourcePill(label: "CPU", value: entry.cpuUsage, tint: .orange)
+                            MetadataPill(label: "CPU", value: entry.cpuUsage, tint: .orange)
                         }
                         if !entry.memoryUsage.isEmpty {
-                            ResourcePill(label: "MEM", value: entry.memoryUsage, tint: .blue)
+                            MetadataPill(label: "MEM", value: entry.memoryUsage, tint: .blue)
                         }
                     }
                     .padding(.leading, 20)
@@ -459,7 +454,7 @@ struct PortRow: View {
     }
 }
 
-private struct ResourcePill: View {
+private struct MetadataPill: View {
     let label: String
     let value: String
     let tint: Color
