@@ -40,7 +40,7 @@ Requires Xcode 15+.
 
 ## Release
 
-Signed and notarized macOS builds are published on the [GitHub Releases](https://github.com/wieandteduard/port-menu/releases) page.
+Signed and notarized macOS builds are published on the [GitHub Releases](https://github.com/varunyn/port-menu/releases) page.
 
 Maintainers can follow the release process in `docs/releasing.md`.
 

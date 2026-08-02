@@ -2,6 +2,15 @@ import Testing
 import Foundation
 @testable import Port_Menu
 
+// MARK: - Update Feed Tests
+
+struct UpdateFeedTests {
+
+    @Test func usesForkUpdateFeed() {
+        #expect(UpdateFeed.feedURL.absoluteString == "https://raw.githubusercontent.com/varunyn/port-menu/main/packaging/appcast.xml")
+    }
+}
+
 // MARK: - lsof Parser Tests
 
 struct LsofParserTests {

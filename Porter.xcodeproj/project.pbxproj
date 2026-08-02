@@ -441,7 +441,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_SUFeedURL = "https://raw.githubusercontent.com/wieandteduard/port-menu/main/packaging/appcast.xml";
+				INFOPLIST_KEY_SUFeedURL = "https://raw.githubusercontent.com/varunyn/port-menu/main/packaging/appcast.xml";
 				INFOPLIST_KEY_SUPublicEDKey = "LK4bWVmtCfPxLbxLkk9GjmVEdaoiF/BATld1k6FeC9Q=";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -473,7 +473,7 @@
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_SUFeedURL = "https://raw.githubusercontent.com/wieandteduard/port-menu/main/packaging/appcast.xml";
+				INFOPLIST_KEY_SUFeedURL = "https://raw.githubusercontent.com/varunyn/port-menu/main/packaging/appcast.xml";
 				INFOPLIST_KEY_SUPublicEDKey = "LK4bWVmtCfPxLbxLkk9GjmVEdaoiF/BATld1k6FeC9Q=";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

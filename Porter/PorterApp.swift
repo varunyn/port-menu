@@ -1,9 +1,13 @@
 import Sparkle
 import SwiftUI
 
+enum UpdateFeed {
+    static let feedURL = URL(string: "https://raw.githubusercontent.com/varunyn/port-menu/main/packaging/appcast.xml")!
+}
+
 private final class UpdaterDelegate: NSObject, SPUUpdaterDelegate {
     func feedURLString(for updater: SPUUpdater) -> String? {
-        "https://raw.githubusercontent.com/wieandteduard/port-menu/main/packaging/appcast.xml"
+        UpdateFeed.feedURL.absoluteString
     }
 }
 
